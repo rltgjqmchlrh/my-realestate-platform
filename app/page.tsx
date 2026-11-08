@@ -8,11 +8,9 @@ import {
   Building2, 
   FileText, 
   ShieldCheck, 
-  CheckCircle2, 
-  HelpCircle 
+  CheckCircle2 
 } from "lucide-react"
 
-// 전국 시·도 및 시·군·구 기본 행정구역 데이터
 const ADMIN_DISTRICTS: Record<string, string[]> = {
   "서울특별시": ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"],
   "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
@@ -34,97 +32,56 @@ const ADMIN_DISTRICTS: Record<string, string[]> = {
 }
 
 export default function VerificationPlatform() {
-  // 1. 법적 책임 자가진단 및 동의 모달 상태
   const [disclaimerAgreed, setDisclaimerAgreed] = useState(false)
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(true)
 
-  // 6. 실시간 동적 카운터 대시보드 상태
   const [todayCount, setTodayCount] = useState(24)
   const [preventionRate, setPreventionRate] = useState(96)
 
-  // 2. 전국 건축물대장 Hub 연동 주소 상태
   const [selectedSido, setSelectedSido] = useState("부산광역시")
   const [selectedSigungu, setSelectedSigungu] = useState("수영구")
   const [detailAddress, setDetailAddress] = useState("")
   const [buildingHo, setBuildingHo] = useState("")
   const [isLinked, setIsLinked] = useState(false)
 
-  // 7. 고시 제2024-748호 개별 항목 폼 상태
   const [form, setForm] = useState({
-    // 제3조 중개사무소 명시사항
     officeName: "",
     officeAddress: "",
     officePhone: "",
     officeRegNo: "",
-
-    // 제6조 인터넷 표시·광고 명시사항
-    // 1. 소재지
     isSingleFamily: false,
     isSingleFamilyLotPrivate: false,
     isMultiFamilyLotPrivate: false,
-    multiFamilyFloorCategory: "중층", // 저층/중층/고층
-
-    // 2. 면적
+    multiFamilyFloorCategory: "중층",
     areaM2: "",
     isActualAreaMeasured: false,
     actualAreaM2: "",
-
-    // 3. 가격 & 5. 거래 형태
     transactionType: "매매",
     priceValue: "",
-
-    // 4. 중개대상물 종류 & 상태
     propertyType: "공동주택(아파트)",
-    buildingStatus: "해당없음(일반)", // 해당없음(일반) / 미등기건물 / 위반건축물
-
-    // 6. 총 층수
+    buildingStatus: "해당없음(일반)",
     totalFloors: "",
-
-    // 7. 입주가능일
-    moveInType: "즉시입주", // 즉시입주 / 날짜지정 / 협의조정
+    moveInType: "즉시입주",
     moveInDate: "",
     moveInMonth: "1월",
     moveInPeriod: "중순",
-
-    // 8. 방 수 및 욕실 수
     rooms: "",
     bathrooms: "",
-
-    // 9. 승인일자 구분
-    approvalDateType: "사용승인일", // 사용승인일 / 사용검사일 / 준공인가일
+    approvalDateType: "사용승인일",
     approvalDate: "",
     inspectionDate: "",
     completionDate: "",
-
-    // 10. 주차대수
     totalParking: "",
     householdParking: "",
     actualParking: "",
-
-    // 11. 관리비
     isNonResidentialNoMaintenance: false,
-    maintenanceOption: "월 10만원 이상 정액 부과", // 월 10만원 이상 정액 부과 / 그 외(월평균)
+    maintenanceOption: "월 10만원 이상 정액 부과",
     maintenanceFee: "",
-    isMaintenanceDetailsPrivate: false,
-    maintenanceDetails: {
-      general: "",
-      electric: "",
-      water: "",
-      gas: "",
-      heating: "",
-      internet: "",
-      tv: "",
-      other: ""
-    },
     maintenanceAvgFee: "",
-    maintenanceAvgIncludes: "",
-
-    // 12. 방향 및 기준 (거실 / 안방 / 주된 출입구)
     direction: "남향",
     directionBase: "거실"
   })
 
-  // 3. 우측 스티키 인터랙티브 체크리스트 항목 연동
   const checkItems = [
     { id: "office", label: "중개사무소 명시사항 (명칭/연락처/등록번호)", completed: Boolean(form.officeName && form.officePhone && form.officeRegNo) },
     { id: "address", label: "소재지 및 건축물대장 Hub 연동", completed: isLinked },
@@ -143,7 +100,6 @@ export default function VerificationPlatform() {
   const completedCount = checkItems.filter(i => i.completed).length
   const allCompleted = completedCount === checkItems.length
 
-  // 시·도 변경 처리
   const handleSidoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const sido = e.target.value
     setSelectedSido(sido)
@@ -151,17 +107,13 @@ export default function VerificationPlatform() {
     setSelectedSigungu(sigungus[0] || "")
   }
 
-  // 4. 건축물대장 Hub 연동 및 자동기입 핸들러
   const handleBuildingHubLink = () => {
     if (!detailAddress) {
       alert("상세 지번 또는 건물명을 입력해 주세요.")
       return
     }
 
-    const fullAddr = `${selectedSido} ${selectedSigungu} ${detailAddress}${buildingHo ? ` ${buildingHo}호` : ""}`
     setIsLinked(true)
-
-    // 주거용 / 비주거용 판정 시뮬레이션
     const isResidential = !detailAddress.includes("상가") && !detailAddress.includes("타워")
 
     setForm(prev => ({
@@ -172,18 +124,13 @@ export default function VerificationPlatform() {
       householdParking: "1.2대",
       approvalDateType: "사용승인일",
       approvalDate: "2021-05-15",
-      inspectionDate: "",
-      completionDate: "",
-      // 용도에 따른 방향 기준 자동 조정 (주거용: 거실/안방, 비주거용: 주된 출입구)
       directionBase: isResidential ? "거실" : "주된 출입구"
     }))
 
     setTodayCount(prev => prev + 1)
   }
 
-  // 최종 검증 및 복사 핸들러
   const [copied, setCopied] = useState(false)
-  const [verificationResult, setVerificationResult] = useState("")
 
   const handleVerifyAndCopy = () => {
     if (!disclaimerAgreed) {
@@ -197,28 +144,32 @@ export default function VerificationPlatform() {
       return
     }
 
-    const fullPropAddress = `${selectedSido} ${selectedSigungu} ${detailAddress}${
-      form.isSingleFamily
-        ? (form.isSingleFamilyLotPrivate ? " (중개의뢰인 요청 지번 비공개)" : "")
-        : (form.isMultiFamilyLotPrivate ? ` [층수: ${form.multiFamilyFloorCategory} (비공개 요청)]` : (buildingHo ? ` ${buildingHo}호` : ""))
-    }`
+    const areaText = form.isActualAreaMeasured ? "실측 " + form.actualAreaM2 + "㎡" : "전용 " + form.areaM2 + "㎡";
+    const moveInText = form.moveInType === '즉시입주' ? '즉시입주' : form.moveInType === '날짜지정' ? form.moveInDate : form.moveInMonth + " " + form.moveInPeriod;
+    const maintenanceText = form.isNonResidentialNoMaintenance ? '비대상 (주택 외 건축물)' : form.maintenanceOption === '월 10만원 이상 정액 부과' ? "월 " + form.maintenanceFee + "만원" : "월평균 " + form.maintenanceAvgFee + "만원";
 
-    const resultText = `[국토교통부 고시 제2024-748호 준수 표시·광고 명시사항 자가진단 검증완료]
-■ 중개사무소 명시사항 (제3조)
-1. 명칭: ${form.officeName}
-2. 소재지: ${form.officeAddress}
-3. 연락처: ${form.officePhone}
-4. 등록번호: ${form.officeRegNo}
+    const resultText = 
+      "[국토교통부 고시 제2024-748호 준수 표시·광고 명시사항 자가진단 검증완료]\n" +
+      "■ 중개사무소 명시사항 (제3조)\n" +
+      "1. 명칭: " + form.officeName + "\n" +
+      "2. 소재지: " + form.officeAddress + "\n" +
+      "3. 연락처: " + form.officePhone + "\n" +
+      "4. 등록번호: " + form.officeRegNo + "\n\n" +
+      "■ 인터넷 표시·광고 명시사항 (제6조)\n" +
+      "1. 소재지: " + selectedSido + " " + selectedSigungu + " " + detailAddress + (buildingHo ? " " + buildingHo + "호" : "") + "\n" +
+      "2. 면적: " + areaText + "\n" +
+      "3. 가격: " + form.transactionType + " " + form.priceValue + "만원\n" +
+      "4. 중개대상물 종류: " + form.propertyType + " (" + form.buildingStatus + ")\n" +
+      "5. 거래 형태: " + form.transactionType + "\n" +
+      "6. 총 층수: " + form.totalFloors + "\n" +
+      "7. 입주가능일: " + moveInText + "\n" +
+      "8. 방 수 / 욕실 수: 방 " + form.rooms + "개 / 욕실 " + form.bathrooms + "개\n" +
+      "9. 승인/검사일: " + form.approvalDateType + "(" + (form.approvalDate || form.inspectionDate || form.completionDate) + ")\n" +
+      "10. 주차대수: 총 " + form.totalParking + " (세대당 " + form.householdParking + (form.actualParking ? ", 실제가능 " + form.actualParking : "") + ")\n" +
+      "11. 관리비: " + maintenanceText + "\n" +
+      "12. 방향: " + form.direction + " (" + form.directionBase + " 기준)\n\n" +
+      "[검증결과: 자가진단 적합 판정 - 본 표시광고 내용의 모든 법적 책임은 개업공인중개사 본인에게 있습니다.]";
 
-■ 인터넷 표시·광고 명시사항 (제6조)
-1. 소재지: ${fullPropAddress}
-2. 면적: ${form.isActualAreaMeasured ? `실측 ${form.actualAreaM2}㎡` : `전용 ${form.areaM2}㎡`} 3. 가격: ${form.transactionType} ${form.priceValue}만원 4. 중개대상물 종류: ${form.propertyType} (${form.buildingStatus}) 5. 거래 형태: ${form.transactionType} 6. 총 층수: ${form.totalFloors} 7. 입주가능일: ${form.moveInType === '즉시입주' ? '즉시입주' : form.moveInType === '날짜지정' ? form.moveInDate : `${form.moveInMonth} ${form.moveInPeriod}`} 8. 방 수 / 욕실 수: 방 ${form.rooms}개 / 욕실 ${form.bathrooms}개 9. 승인/검사일: ${form.approvalDateType}(${form.approvalDate \vert{}\vert{} form.inspectionDate \vert{}\vert{} form.completionDate}) 10. 주차대수: 총 ${form.totalParking} (세대당 ${form.householdParking}${form.actualParking ? `, 실제가능 ${form.actualParking}` : ""})
-11. 관리비: ${form.isNonResidentialNoMaintenance ? '비대상 (주택 외 건축물)' : form.maintenanceOption === '월 10만원 이상 정액 부과' ? `월 ${form.maintenanceFee}만원 (세부비목 명시)` : `월평균 ${form.maintenanceAvgFee}만원`}
-12. 방향: ${form.direction} (${form.directionBase} 기준)
-
-[검증결과: 자가진단 적합 판정 - 본 표시광고 내용의 모든 법적 책임은 개업공인중개사 본인에게 있습니다.]`
-
-    setVerificationResult(resultText)
     navigator.clipboard.writeText(resultText)
     setCopied(true)
     setPreventionRate(prev => Math.min(100, prev + 1))
@@ -229,8 +180,6 @@ export default function VerificationPlatform() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20 font-sans">
-      
-      {/* 1. 법적 책임 동의 안내 모달 */}
       {showDisclaimerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
           <div className="max-w-xl w-full bg-white rounded-2xl shadow-2xl p-6 border border-slate-200">
@@ -244,7 +193,7 @@ export default function VerificationPlatform() {
                 본 플랫폼은 부동산 표시·광고 명시사항의 적합성 여부에 대한 자가진단을 도와주고 작성 편의성을 높이기 위해 개발된 <strong>사전참고용 자가진단 플랫폼</strong>입니다.
               </p>
               <p>
-                실제 표시·광고에 대한 모든 법적 책임은 작성자 본인에게 있으며, 본 플랫폼에서 &apos;적합&apos;으로 판정되더라도 허위매물, 거짓광고, 부당한 표시·광고 여부 전체에 대한 법적 적합성을 공적으로 보증하는 것이 아닙니다. 따라서 최종 광고 내용에 대한 검토 책임은 본인에게 있으며, 부당한 표시·광고 시 관련 법률에 따라 <strong>과태료 부과 대상</strong>이 될 수 있음을 유의하시기 바랍니다.
+                실제 표시·광고에 대한 모든 법적 책임은 작성자 본인에게 있으며, 과태료 부과 대상이 될 수 있음을 유의하시기 바랍니다.
               </p>
             </div>
 
@@ -268,15 +217,4 @@ export default function VerificationPlatform() {
                 className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl disabled:opacity-50 transition-colors shadow-sm"
               >
                 확인 및 자가진단 시작하기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. 헤더 및 실시간 동적 카운터 대시보드 */}
-      <header className="bg-slate-900 text-white py-8 px-6 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
-            <div className="flex items-center gap-2 text-blue-400 text-xs font-bold uppercase tracking-wider mb-1.5">
-              <Building
+              </button
