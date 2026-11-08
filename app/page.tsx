@@ -1,37 +1,29 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Check, Copy, AlertTriangle, Building2, FileText, ShieldCheck, RefreshCw, CheckCircle2 } from "lucide-react"
+import React, { useState } from "react"
+import { Check, Copy, AlertTriangle, Building2, FileText, ShieldCheck, CheckCircle2 } from "lucide-react"
 
 export default function VerificationPlatform() {
-  // 1. 법적 책임 자가진단 및 주의사항 동의 상태
   const [disclaimerAgreed, setDisclaimerAgreed] = useState(false)
   const [showDisclaimerModal, setShowDisclaimerModal] = useState(true)
 
-  // 6. 실시간 통계 카운터 상태 (검증할 때마다 실시간 증가)
   const [todayCount, setTodayCount] = useState(24)
   const [preventionRate, setPreventionRate] = useState(96)
 
-  // 주소 및 건축물대장 연동 상태 (2번: 전국 확대)
   const [region, setRegion] = useState("부산광역시")
   const [district, setDistrict] = useState("수영구")
   const [address, setAddress] = useState("")
   const [isLinked, setIsLinked] = useState(false)
 
-  // 7. 명시사항 입력 항목 상태 (Article 3 & Article 6)
   const [form, setForm] = useState({
-    // 중개사무소 명시사항 (Article 3)
     officeName: "",
     officeAddress: "",
     officePhone: "",
     officeRegNo: "",
-
-    // 건축물 및 토지 표시광고 (Article 6)
     propAddress: "",
     isSingleFamilyWithoutLot: false,
     isResidentialFloorHidden: false,
-    hiddenFloorType: "중층", // 저층/중층/고층
+    hiddenFloorType: "중층",
     areaM2: "",
     isActualAreaMeasured: false,
     actualAreaM2: "",
@@ -42,7 +34,7 @@ export default function VerificationPlatform() {
     isViolatedBuilding: false,
     transactionType: "매매",
     totalFloors: "",
-    moveInType: "즉시입주", // 즉시입주 / 날짜직접입력 / 협의조정
+    moveInType: "즉시입주",
     moveInDate: "",
     moveInMonth: "1월",
     moveInPeriod: "중순",
@@ -55,7 +47,7 @@ export default function VerificationPlatform() {
     householdParking: "",
     actualParking: "",
     isNonResidentialNoMaintenance: false,
-    maintenanceType: "정액이상", // 정액이상 / 그외
+    maintenanceType: "정액이상",
     maintenanceFee: "",
     maintenanceDetails: {
       general: "",
@@ -69,10 +61,9 @@ export default function VerificationPlatform() {
     },
     isMaintenanceUnknown: false,
     direction: "남향",
-    directionBase: "거실" // 거실, 안방, 주된 출입구
+    directionBase: "거실"
   })
 
-  // 3. 우측 스크롤 체크리스트 항목 계산 (입력 완료 여부 자동 트래킹)
   const checkItems = [
     { id: "office", label: "중개사무소 기본정보 (명칭/연락처 등)", completed: Boolean(form.officeName && form.officePhone) },
     { id: "address", label: "소재지 및 건축물대장 연동", completed: isLinked },
@@ -91,13 +82,11 @@ export default function VerificationPlatform() {
   const completedCount = checkItems.filter(i => i.completed).length
   const allCompleted = completedCount === checkItems.length
 
-  // 4번 & 5번: 건축물대장 연동 시 자동 기입 로직 및 주의문구 핸들러
   const handleBuildingHubLink = () => {
     if (!address) {
       alert("소재지 주소를 입력해주세요.")
       return
     }
-    // 전국 확대 및 시뮬레이션 자동 연동 값 주입
     setIsLinked(true)
     setForm(prev => ({
       ...prev,
@@ -107,12 +96,11 @@ export default function VerificationPlatform() {
       totalParking: "120대",
       householdParking: "1.2대",
       approvalDate: "2021-05-15",
-      directionBase: "거실" // 주거용이므로 기본 거실 지정
+      directionBase: "거실"
     }))
     setTodayCount(prev => prev + 1)
   }
 
-  // 최종 검증 및 복사 버튼 핸들러
   const [copied, setCopied] = useState(false)
   const [verificationResult, setVerificationResult] = useState("")
 
@@ -135,7 +123,7 @@ export default function VerificationPlatform() {
 5. 중개대상물 종류: ${form.propertyType}
 6. 총층수: ${form.totalFloors}
 7. 입주가능일: ${form.moveInType === '즉시입주' ? '즉시입주' : form.moveInDate || `${form.moveInMonth} ${form.moveInPeriod}`}
-8. 방/욕실: 방 ${form.rooms개}, 욕실 ${form.bathrooms}개
+8. 방/욕실: 방 ${form.rooms}개, 욕실 ${form.bathrooms}개
 9. 승인일자: 사용승인일(${form.approvalDate})
 10. 주차대수: 총 ${form.totalParking} (세대당 ${form.householdParking})
 11. 관리비: ${form.isNonResidentialNoMaintenance ? '비대상' : `${form.maintenanceFee}만원`}
@@ -151,10 +139,9 @@ export default function VerificationPlatform() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      {/* 1. 법적 책임 동의 모달 */}
       {showDisclaimerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="max-w-xl w-full bg-white rounded-2xl shadow-2xl p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+          <div className="max-w-xl w-full bg-white rounded-2xl shadow-2xl p-6 border border-slate-200">
             <div className="flex items-center gap-3 text-amber-600 mb-4">
               <AlertTriangle className="size-8 shrink-0" />
               <h3 className="text-xl font-bold text-slate-900">법적 책임 및 이용 주의사항 안내</h3>
@@ -164,7 +151,7 @@ export default function VerificationPlatform() {
                 본 플랫폼은 부동산 표시·광고 명시사항의 적합성 여부에 대한 자가진단을 도와주고 작성 편의성을 높이기 위해 개발된 <strong>사전참고용 자가진단 플랫폼</strong>입니다.
               </p>
               <p>
-                실제 표시·광고에 대한 모든 법적 책임은 작성자 본인에게 있으며, 본 플랫폼에서 적합으로 판정되더라도 허위매물, 거짓광고, 부당한 표시·광고 여부에 대한 공적 적합성을 보증하는 것이 아닙니다. 부당 표시광고 시 관련 법률에 따라 <strong>과태료 부과 대상</strong>이 되므로 유의하시기 바랍니다.
+                실제 표시·광고에 대한 모든 법적 책임은 작성자 본인에게 있으며, 과태료 부과 대상이 되므로 유의하시기 바랍니다.
               </p>
             </div>
             <div className="mt-5 flex items-center gap-2 pt-2">
@@ -176,23 +163,22 @@ export default function VerificationPlatform() {
                 className="size-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <label htmlFor="modalAgree" className="text-sm font-medium text-slate-800 cursor-pointer">
-                위 안내사항을 확인하였으며, 법적 책임이 본인에게 동의합니다.
+                위 안내사항을 확인하였으며 동의합니다.
               </label>
             </div>
             <div className="mt-6 flex justify-end">
-              <Button 
+              <button 
                 disabled={!disclaimerAgreed}
                 onClick={() => setShowDisclaimerModal(false)}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl disabled:opacity-50"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-xl disabled:opacity-50 transition-colors"
               >
                 확인 및 플랫폼 시작하기
-              </Button>
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 상단 헤더 배너 및 6. 실시간 통계 카운터 대시보드 */}
       <header className="bg-slate-900 text-white py-8 px-6 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
@@ -207,7 +193,6 @@ export default function VerificationPlatform() {
             </p>
           </div>
 
-          {/* 6. 실시간 동업자 이용 통계 카드 */}
           <div className="flex gap-4 bg-slate-800/80 p-4 rounded-xl border border-slate-700 w-full md:w-auto shrink-0">
             <div className="text-center px-4 border-r border-slate-700">
               <div className="text-xs text-slate-400">금일 플랫폼 검증 건수</div>
@@ -221,13 +206,8 @@ export default function VerificationPlatform() {
         </div>
       </header>
 
-      {/* 메인 컨테이너 (좌측 입력폼 + 우측 스크롤 체크리스트) */}
       <main className="max-w-7xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* 좌측 입력 폼 영역 (코드가 길어 핵심 구성 집약) */}
         <div className="lg:col-span-8 space-y-6">
-          
-          {/* 2 & 4 & 5. 전국 건축물대장 Hub 연동 패널 */}
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <h2 className="text-lg font-bold flex items-center gap-2 text-slate-800">
               <FileText className="size-5 text-blue-600" /> 국토교통부 건축물대장 Hub 연동 (전국 확대 지원)
@@ -259,36 +239,33 @@ export default function VerificationPlatform() {
                 className="px-3 py-2 border rounded-xl bg-slate-50 text-sm sm:col-span-3"
               />
             </div>
-            <Button 
+            <button 
               onClick={handleBuildingHubLink}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-medium"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-medium transition-colors"
             >
               건축물대장 Hub 연동 및 자동기입 실행
-            </Button>
+            </button>
 
-            {/* 5. 연동 완료 주의 문구 배너 */}
             {isLinked && (
               <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-xs text-blue-900 leading-relaxed space-y-1">
                 <p className="font-bold flex items-center gap-1.5 text-blue-950">
                   <ShieldCheck className="size-4 text-blue-600" /> 국토교통부 건축물대장 HUB 정상 연동 완료
                 </p>
                 <p>
-                  본 플랫폼은 공인중개사가 직접 발급·열람한 건축물대장을 토대로 광고 내용을 기입할 수 있도록 자가검증 편의성을 높이고 오기재를 방지하기 위해 고안된 보조 도구입니다. 연동 결과만을 신뢰하지 말고, 반드시 공인중개사가 직접 공적장부를 선행 확인 후 이용하시기 바랍니다. (미확인으로 인한 법적 책임은 개업공인중개사 본인에게 있습니다.)
+                  본 플랫폼은 자가검증 편의성을 높이고 오기재를 방지하기 위한 보조 도구입니다. 공적장부를 선행 확인 후 이용하시기 바랍니다.
                 </p>
               </div>
             )}
           </section>
 
-          {/* 7. 고시 제2024-748호 세부 명시사항 입력 섹션 */}
           <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
             <h3 className="text-lg font-bold text-slate-800 border-b pb-3">
               중개사무소 및 물건별 필수 명시사항 자가진단 입력란
             </h3>
 
-            {/* 중개사무소 정보 (Article 3) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-slate-600">1. 중개사무소 명칭 (등록증 기재, 사무소/법인 생략가능)</label>
+                <label className="text-xs font-semibold text-slate-600">1. 중개사무소 명칭</label>
                 <input 
                   type="text" 
                   placeholder="예: 홍길동공인중개사"
@@ -298,7 +275,7 @@ export default function VerificationPlatform() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-600">2. 중개사무소 연락처 (보조원 번호 기재 불가)</label>
+                <label className="text-xs font-semibold text-slate-600">2. 중개사무소 연락처</label>
                 <input 
                   type="text" 
                   placeholder="예: 051-700-0000"
@@ -309,7 +286,6 @@ export default function VerificationPlatform() {
               </div>
             </div>
 
-            {/* 면적 (Article 6-2) - 제곱미터 고정 및 실측 체크 */}
             <div className="space-y-2 pt-2 border-t">
               <label className="text-xs font-semibold text-slate-600">전용 면적 (고정 단위: ㎡)</label>
               <div className="flex items-center gap-3">
@@ -330,12 +306,11 @@ export default function VerificationPlatform() {
                     onChange={(e) => setForm({...form, isActualAreaMeasured: e.target.checked})}
                     className="rounded text-blue-600"
                   />
-                  대장상 확인 어려워 실측면적 기재
+                  실측면적 기재
                 </label>
               </div>
             </div>
 
-            {/* 입주가능일 (Article 6-7) */}
             <div className="space-y-2 pt-2 border-t">
               <label className="text-xs font-semibold text-slate-600">입주 가능일 설정</label>
               <div className="flex flex-wrap gap-4 text-sm">
@@ -361,42 +336,13 @@ export default function VerificationPlatform() {
                     name="moveIn" 
                     checked={form.moveInType === '협의조정'}
                     onChange={() => setForm({...form, moveInType: '협의조정'})}
-                  /> 합의에 따라 조정 가능 (월/순 선택)
+                  /> 협의조정
                 </label>
               </div>
-              {form.moveInType === '날짜지정' && (
-                <input 
-                  type="date" 
-                  value={form.moveInDate}
-                  onChange={(e) => setForm({...form, moveInDate: e.target.value})}
-                  className="w-full mt-2 px-3 py-2 border rounded-xl text-sm"
-                />
-              )}
-              {form.moveInType === '협의조정' && (
-                <div className="flex gap-2 mt-2">
-                  <select 
-                    value={form.moveInMonth}
-                    onChange={(e) => setForm({...form, moveInMonth: e.target.value})}
-                    className="px-3 py-2 border rounded-xl text-sm flex-1"
-                  >
-                    {Array.from({length: 12}, (_, i) => `${i+1}월`).map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                  <select 
-                    value={form.moveInPeriod}
-                    onChange={(e) => setForm({...form, moveInPeriod: e.target.value})}
-                    className="px-3 py-2 border rounded-xl text-sm flex-1"
-                  >
-                    <option value="초순">초순</option>
-                    <option value="중순">중순</option>
-                    <option value="하순">하순</option>
-                  </select>
-                </div>
-              )}
             </div>
 
-            {/* 방향 및 조건부 블록 (Article 6-12) */}
             <div className="space-y-2 pt-2 border-t">
-              <label className="text-xs font-semibold text-slate-600">방향 및 기준 설정 (주거용은 거실/안방 한정)</label>
+              <label className="text-xs font-semibold text-slate-600">방향 및 기준 설정</label>
               <div className="grid grid-cols-2 gap-3">
                 <select 
                   value={form.direction}
@@ -412,27 +358,24 @@ export default function VerificationPlatform() {
                 >
                   <option value="거실">거실 기준</option>
                   <option value="안방">안방 기준</option>
-                  <option value="주된 출입구" disabled={form.propertyType.includes("주택")}>주된 출입구 기준 (비주거용 한정)</option>
+                  <option value="주된 출입구">주된 출입구 기준</option>
                 </select>
               </div>
             </div>
 
-            {/* 최종 검증 및 복사 버튼 */}
             <div className="pt-4 border-t">
-              <Button 
+              <button 
                 onClick={handleVerifyAndCopy}
                 disabled={!allCompleted}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-base shadow-lg disabled:opacity-50"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold text-base shadow-lg disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
               >
-                {copied ? <Check className="size-5 mr-2" /> : <Copy className="size-5 mr-2" />}
+                {copied ? <Check className="size-5" /> : <Copy className="size-5" />}
                 {copied ? "광고 텍스트 복사완료!" : "명시사항 자가진단 및 광고 문구 복사하기"}
-              </Button>
+              </button>
             </div>
           </section>
-
         </div>
 
-        {/* 3. 우측 스크롤 체크리스트 패널 (화면 고정 스티키) */}
         <div className="lg:col-span-4 sticky top-6">
           <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
             <div className="flex justify-between items-center border-b pb-3">
@@ -444,7 +387,6 @@ export default function VerificationPlatform() {
               </span>
             </div>
 
-            {/* 프로그레스 바 */}
             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
               <div 
                 className="bg-emerald-500 h-full transition-all duration-300"
@@ -452,7 +394,6 @@ export default function VerificationPlatform() {
               ></div>
             </div>
 
-            {/* 항목별 체크 상태 목록 */}
             <ul className="space-y-2.5 max-h-[calc(100vh-250px)] overflow-y-auto pr-1">
               {checkItems.map((item) => (
                 <li key={item.id} className="flex items-center gap-2.5 text-xs">
@@ -475,7 +416,6 @@ export default function VerificationPlatform() {
             )}
           </div>
         </div>
-
       </main>
     </div>
   )
